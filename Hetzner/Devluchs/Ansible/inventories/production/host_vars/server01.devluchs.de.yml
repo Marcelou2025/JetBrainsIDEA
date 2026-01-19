@@ -1,0 +1,106 @@
+---
+ansible_host: 46.62.251.234
+netplan_interface: eth0
+ipv4_dhcp: true
+ipv6_address: 2a01:4f9:c013:ab57::234
+ipv6_prefix: 64
+ipv6_gateway: fe80::1
+internal_interface: enp7s0
+internal_ipv4_address: 192.168.168.2
+internal_ipv4_prefix: 32
+internal_ipv4_network: 192.168.168.0/24
+internal_ipv4_gateway: 192.168.168.1
+bind9_role: master
+bind9_allow_transfer:
+  - 65.109.224.245
+  - 2a01:4f9:c013:a23d::1
+bind9_notify:
+  - 65.109.224.245
+  - 2a01:4f9:c013:a23d::1
+bind9_zones:
+  - name: devluchs.de
+    file: db.devluchs.de
+    ttl: 3600
+    serial: 2026011804
+    soa_mname: ns1.tigerdns.de.
+    soa_rname: webmaster.devluchs.de.
+    nameservers:
+      - ns1.tigerdns.de.
+      - ns2.tigerdns.de.
+    records:
+      - name: "@"
+        type: A
+        value: 46.62.251.234
+      - name: "@"
+        type: AAAA
+        value: 2a01:4f9:c013:ab57::234
+      - name: "*"
+        type: A
+        value: 45.84.196.164
+      - name: "*"
+        type: AAAA
+        value: 2a12:de40:0021:b182:0000:0000:0000:0000
+      - name: "_acme-challenge"
+        type: TXT
+        value: "UYU0syxnb_MqYiZ5eDAYoUbsCXmIC4F7ieSv4Hd7rf0"
+      - name: "_acme-challenge.server02"
+        type: TXT
+        value: "CXHWYvwtvZotz5yg_szF2H0fg0-nymd3K4EYMEaBPEc"
+      - name: "_acme-challenge.mail"
+        type: TXT
+        value: "WdeDLrLu2ioBlz4P4TY3NwmdfHN7lsI4AjlIXsngvZM"
+      - name: "_acme-challenge.server03"
+        type: TXT
+        value: "zY-ZKXOHacAH6oRnjxuJ0K1EpTRJhlhV3OSE6jRtJ9w"
+      - name: "www"
+        type: CNAME
+        value: "devluchs.de."
+      - name: "ftp"
+        type: CNAME
+        value: "devluchs.de."
+      - name: "ipv4"
+        type: A
+        value: 45.84.196.164
+      - name: "ipv6"
+        type: AAAA
+        value: "2a12:de40:0021:b182:0000:0000:0000:0000"
+      - name: "ns1"
+        type: A
+        value: 46.62.251.234
+      - name: "ns1"
+        type: AAAA
+        value: "2a01:4f9:c013:ab57::234"
+      - name: "ns2"
+        type: A
+        value: 65.109.224.245
+      - name: "ns2"
+        type: AAAA
+        value: "2a01:4f9:c013:a23d::245"
+      - name: "server01"
+        type: A
+        value: 46.62.251.234
+      - name: "server01"
+        type: AAAA
+        value: 2a01:4f9:c013:ab57::234
+      - name: "server02"
+        type: A
+        value: 65.109.224.245
+      - name: "server02"
+        type: AAAA
+        value: 2a01:4f9:c013:a23d::245
+      - name: "server03"
+        type: A
+        value: 100.66.188.221
+      - name: "server03"
+        type: AAAA
+        value: 2a01:4f9:c013:f7a7::1
+      - name: "mail"
+        type: A
+        value: 100.66.188.221
+      - name: "mail"
+        type: AAAA
+        value: 2a01:4f9:c013:f7a7::1
+certbot_domains:
+  - devluchs.de
+  - www.devluchs.de
+  - server01.devluchs.de

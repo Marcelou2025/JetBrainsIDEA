@@ -1,0 +1,15 @@
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+    ServerName {{ certbot_domains | default([]) | first | default(inventory_hostname) }}
+    {% for domain in certbot_domains[1:] %}ServerAlias {{ domain }}
+    {% endfor %}
+    DocumentRoot /var/www/html
+
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/{{ certbot_domains | default([]) | first | default(inventory_hostname) }}/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/{{ certbot_domains | default([]) | first | default(inventory_hostname) }}/privkey.pem
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+</IfModule>

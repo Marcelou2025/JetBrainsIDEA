@@ -1,0 +1,3 @@
+
+server03 ist als Mailserver im IPv6-only zur Kosteneinsparung geplant. ChatGPT meinte, das es ginge, wenn man ARIN beachte? Achso und alle Abgleiche (wie mit dem Certbot) unter den Servern, soll strikt über das private Netzwerk erfolgen.
+

@@ -1,0 +1,8 @@
+---
+- name: Install Apache and deploy index page
+  hosts:
+    - server01.devluchs.de
+    - server02.devluchs.de
+  become: true
+  roles:
+    - apache

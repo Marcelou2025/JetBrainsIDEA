@@ -1,0 +1,6 @@
+---
+- name: Install baseline requirements
+  hosts: hetzner
+  become: true
+  roles:
+    - requirements

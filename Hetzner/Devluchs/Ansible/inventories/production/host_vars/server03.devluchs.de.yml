@@ -1,0 +1,16 @@
+---
+ansible_host: 2a01:4f9:c013:f7a7::1
+netplan_interface: eth0
+ipv4_dhcp: true
+ipv6_address: 2a01:4f9:c013:f7a7::1
+ipv6_prefix: 64
+ipv6_gateway: fe80::1
+internal_interface: enp7s0
+internal_ipv4_address: 192.168.168.4
+internal_ipv4_prefix: 32
+internal_ipv4_network: 192.168.168.0/24
+internal_ipv4_gateway: 192.168.168.1
+certbot_domains:
+  - mail.devluchs.de
+  - server03.devluchs.de
+postfix_dovecot_cert_name: mail.devluchs.de

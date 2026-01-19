@@ -1,0 +1,15 @@
+---
+- name: Install Timeshift and create snapshot
+  hosts: nameservers
+  become: true
+  tasks:
+    - name: Install Timeshift
+      ansible.builtin.apt:
+        name: timeshift
+        state: present
+        update_cache: true
+
+    - name: Create Timeshift snapshot
+      ansible.builtin.command: timeshift --create --comments "Grundinstallation"
+      register: timeshift_snapshot
+      changed_when: "'Created' in timeshift_snapshot.stdout or timeshift_snapshot.rc == 0"

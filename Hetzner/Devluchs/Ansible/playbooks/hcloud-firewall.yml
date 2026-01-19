@@ -1,0 +1,141 @@
+---
+- name: Configure Hetzner Cloud firewall via API
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    hcloud_token: "{{ lookup('env', 'HCLOUD_TOKEN') }}"
+    hcloud_api_base: https://api.hetzner.cloud/v1
+    hcloud_firewall_name: WebsiteCertbotCockpit
+    hcloud_firewall_rules:
+      - direction: in
+        protocol: icmp
+        source_ips:
+          - 0.0.0.0/0
+          - ::/0
+      - direction: in
+        protocol: tcp
+        port: "22"
+        source_ips:
+          - 0.0.0.0/0
+          - ::/0
+      - direction: in
+        protocol: tcp
+        port: "80"
+        source_ips:
+          - 0.0.0.0/0
+          - ::/0
+      - direction: in
+        protocol: tcp
+        port: "443"
+        source_ips:
+          - 0.0.0.0/0
+          - ::/0
+      - direction: in
+        protocol: tcp
+        port: "9090"
+        source_ips:
+          - 0.0.0.0/0
+          - ::/0
+      - direction: in
+        protocol: tcp
+        port: "53"
+        source_ips:
+          - 0.0.0.0/0
+          - ::/0
+      - direction: in
+        protocol: udp
+        port: "53"
+        source_ips:
+          - 0.0.0.0/0
+          - ::/0
+    hcloud_apply_servers:
+      - server01.devluchs.de
+  tasks:
+    - name: Assert HCLOUD_TOKEN is set
+      ansible.builtin.assert:
+        that:
+          - hcloud_token is defined
+          - hcloud_token | length > 0
+        fail_msg: "Set HCLOUD_TOKEN in the environment before running this playbook."
+
+    - name: Look up server IDs
+      ansible.builtin.uri:
+        url: "{{ hcloud_api_base }}/servers?name={{ item }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ hcloud_token }}"
+        return_content: true
+        status_code: [200]
+      no_log: true
+      loop: "{{ hcloud_apply_servers }}"
+      register: hcloud_servers
+
+    - name: Get firewall by name
+      ansible.builtin.uri:
+        url: "{{ hcloud_api_base }}/firewalls?name={{ hcloud_firewall_name }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ hcloud_token }}"
+        return_content: true
+        status_code: [200]
+      no_log: true
+      register: hcloud_firewall_lookup
+
+    - name: Create firewall when missing
+      ansible.builtin.uri:
+        url: "{{ hcloud_api_base }}/firewalls"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ hcloud_token }}"
+        body_format: json
+        body:
+          name: "{{ hcloud_firewall_name }}"
+          rules: "{{ hcloud_firewall_rules }}"
+          apply_to: "{{ hcloud_apply_to | default([]) }}"
+        status_code: [201]
+      when: hcloud_firewall_lookup.json.firewalls | length == 0
+      register: hcloud_firewall_create
+      no_log: true
+
+    - name: Set firewall ID
+      ansible.builtin.set_fact:
+        hcloud_firewall_id: >-
+          {{ (hcloud_firewall_lookup.json.firewalls | length > 0)
+             | ternary(hcloud_firewall_lookup.json.firewalls[0].id, hcloud_firewall_create.json.firewall.id) }}
+      no_log: true
+
+    - name: Update firewall rules
+      ansible.builtin.uri:
+        url: "{{ hcloud_api_base }}/firewalls/{{ hcloud_firewall_id }}/actions/set_rules"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ hcloud_token }}"
+        body_format: json
+        body:
+          rules: "{{ hcloud_firewall_rules }}"
+        status_code: [200, 201]
+      no_log: true
+
+    - name: Build apply_to list
+      ansible.builtin.set_fact:
+        hcloud_apply_to: "{{ hcloud_apply_to | default([]) + [{'type': 'server', 'server': item.json.servers[0].id}] }}"
+      loop: "{{ hcloud_servers.results }}"
+      when:
+        - item.json.servers | length > 0
+        - (item.json.servers[0].public_net.firewalls | map(attribute='id') | list)
+          | select('equalto', hcloud_firewall_id | int) | list | length == 0
+      no_log: true
+
+    - name: Apply firewall to servers
+      ansible.builtin.uri:
+        url: "{{ hcloud_api_base }}/firewalls/{{ hcloud_firewall_id }}/actions/apply_to_resources"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ hcloud_token }}"
+        body_format: json
+        body:
+          apply_to: "{{ hcloud_apply_to | default([]) }}"
+        status_code: [200, 201, 409]
+      when: (hcloud_apply_to | default([])) | length > 0
+      no_log: true

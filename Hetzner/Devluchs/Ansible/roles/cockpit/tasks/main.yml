@@ -1,0 +1,12 @@
+---
+- name: Install Cockpit
+  ansible.builtin.apt:
+    name: cockpit
+    state: present
+    update_cache: true
+
+- name: Ensure Cockpit is enabled and running
+  ansible.builtin.service:
+    name: cockpit
+    state: started
+    enabled: true

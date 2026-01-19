@@ -1,0 +1,6 @@
+---
+- name: Network setup
+  hosts: hetzner
+  become: true
+  roles:
+    - network

@@ -1,0 +1,20 @@
+$TTL {{ zone.ttl | default(3600) }}
+@ IN SOA {{ zone.soa_mname }} {{ zone.soa_rname }} (
+    {{ zone.serial | default(ansible_date_time.date | regex_replace('-', '') ~ '01') }}
+    3600
+    900
+    604800
+    86400
+)
+
+{% for ns in zone.nameservers %}
+@ IN NS {{ ns }}
+{% endfor %}
+
+{% for record in zone.records %}
+{% if record.type == "TXT" %}
+{{ record.name }} IN TXT {{ record.value | regex_findall('.{1,255}') | map('regex_replace', '^', '\"') | map('regex_replace', '$', '\"') | join(' ') }}
+{% else %}
+{{ record.name }} IN {{ record.type }} {{ record.value }}
+{% endif %}
+{% endfor %}

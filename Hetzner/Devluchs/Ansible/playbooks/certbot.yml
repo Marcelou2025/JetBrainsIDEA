@@ -1,0 +1,6 @@
+---
+- name: Install Certbot
+  hosts: webservers
+  become: true
+  roles:
+    - certbot

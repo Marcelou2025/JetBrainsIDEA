@@ -1,0 +1,6 @@
+---
+- name: Mail server setup
+  hosts: server03.devluchs.de
+  become: true
+  roles:
+    - mail

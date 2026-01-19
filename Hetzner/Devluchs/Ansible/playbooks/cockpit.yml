@@ -1,0 +1,6 @@
+---
+- name: Install Cockpit
+  hosts: hetzner
+  become: true
+  roles:
+    - cockpit

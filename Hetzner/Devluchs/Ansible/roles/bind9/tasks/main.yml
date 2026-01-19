@@ -1,0 +1,53 @@
+---
+- name: Install bind9 packages
+  ansible.builtin.apt:
+    name:
+      - bind9
+      - dnsutils
+    state: present
+    update_cache: true
+
+- name: Configure bind9 options
+  ansible.builtin.template:
+    src: named.conf.options.j2
+    dest: /etc/bind/named.conf.options
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart bind9
+
+- name: Ensure zone directory exists
+  ansible.builtin.file:
+    path: /etc/bind/zones
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure local zones
+  ansible.builtin.template:
+    src: named.conf.local.j2
+    dest: /etc/bind/named.conf.local
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart bind9
+
+- name: Render zone files
+  ansible.builtin.template:
+    src: db.zone.j2
+    dest: "/etc/bind/zones/{{ item.file | default('db.' ~ item.name) }}"
+    owner: root
+    group: root
+    mode: "0644"
+  vars:
+    zone: "{{ item }}"
+  loop: "{{ bind9_zones | default([]) }}"
+  when: (bind9_role | default('master')) == 'master'
+  notify: Restart bind9
+
+- name: Ensure bind9 is enabled and running
+  ansible.builtin.service:
+    name: bind9
+    state: started
+    enabled: true

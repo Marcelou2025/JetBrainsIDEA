@@ -1,0 +1,19 @@
+---
+ansible_host: 65.109.224.245
+netplan_interface: eth0
+ipv4_dhcp: true
+ipv6_address: 2a01:4f9:c013:a23d::245
+ipv6_prefix: 64
+ipv6_gateway: fe80::1
+internal_interface: enp7s0
+internal_ipv4_address: 192.168.168.3
+internal_ipv4_prefix: 32
+internal_ipv4_network: 192.168.168.0/24
+internal_ipv4_gateway: 192.168.168.1
+bind9_role: slave
+bind9_master_ip: 46.62.251.234
+bind9_zones:
+  - name: devluchs.de
+    file: db.devluchs.de
+certbot_domains:
+  - server02.devluchs.de

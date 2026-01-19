@@ -1,0 +1,11 @@
+---
+- name: Connectivity test
+  hosts: server01.devluchs.de
+  gather_facts: false
+  tasks:
+    - name: Ping host
+      ansible.builtin.ping:
+
+    - name: Emit test message
+      ansible.builtin.debug:
+        msg: "Ansible connectivity OK on {{ inventory_hostname }}"

@@ -1,0 +1,15 @@
+---
+- name: Install baseline utilities
+  ansible.builtin.apt:
+    name:
+      - htop
+      - btop
+      - bmon
+      - mc
+      - vim
+      - nano
+      - nmap
+      - traceroute
+      - tcpdump
+    state: present
+    update_cache: true

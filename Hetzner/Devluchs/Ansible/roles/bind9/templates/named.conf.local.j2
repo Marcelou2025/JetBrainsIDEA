@@ -1,0 +1,16 @@
+{% for zone in bind9_zones | default([]) %}
+zone "{{ zone.name }}" {
+    type {{ bind9_role | default('master') }};
+    file "/etc/bind/zones/{{ zone.file | default('db.' ~ zone.name) }}";
+{% if (bind9_role | default('master')) == 'master' %}
+{% if bind9_allow_transfer is defined %}
+    allow-transfer { {{ bind9_allow_transfer | join('; ') }}; };
+{% endif %}
+{% if bind9_notify is defined %}
+    also-notify { {{ bind9_notify | join('; ') }}; };
+{% endif %}
+{% else %}
+    masters { {{ bind9_master_ip }}; };
+{% endif %}
+};
+{% endfor %}

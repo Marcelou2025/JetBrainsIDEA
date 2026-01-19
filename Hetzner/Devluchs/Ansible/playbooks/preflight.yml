@@ -1,0 +1,11 @@
+---
+- name: Preflight checks
+  hosts: hetzner
+  gather_facts: true
+  tasks:
+    - name: Assert Ubuntu 24.04.x
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == "Ubuntu"
+          - ansible_facts.distribution_version is match("^24\\.04")
+        fail_msg: "Unsupported OS {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }} (expected Ubuntu 24.04.x)."

@@ -1,0 +1,50 @@
+---
+- name: Install Certbot packages
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-apache
+    state: present
+    update_cache: true
+
+- name: Obtain certificate via DNS (dns-01)
+  ansible.builtin.command: >
+    certbot certonly --manual --preferred-challenges dns
+    --manual-auth-hook "/bin/true"
+    --manual-cleanup-hook "/bin/true"
+    --manual-public-ip-logging-ok
+    --non-interactive --agree-tos
+    --email {{ certbot_email }}
+    {% for domain in certbot_domains %}-d {{ domain }} {% endfor %}
+    --cert-name {{ certbot_domains[0] }}
+    --register-unsafely-without-email
+  args:
+    creates: "/etc/letsencrypt/live/{{ certbot_domains[0] }}/fullchain.pem"
+  environment:
+    CERTBOT_ACCOUNT_EMAIL: "{{ certbot_email }}"
+  when:
+    - certbot_email is defined
+    - certbot_domains is defined
+    - certbot_domains | length > 0
+
+- name: Sync certificates to other webservers
+  ansible.builtin.command: >
+    rsync -a -e "ssh -o StrictHostKeyChecking=no"
+    /etc/letsencrypt/
+    root@{{ hostvars[item].internal_ipv4_address | default(hostvars[item].ipv6_address | default(hostvars[item].ansible_host | default(item))) }}:/etc/letsencrypt/
+  loop: "{{ groups['webservers'] | difference([certbot_primary_host]) }}"
+  when:
+    - certbot_primary_host is defined
+    - inventory_hostname == certbot_primary_host
+    - groups['webservers'] | length > 1
+
+- name: Reload Apache on replicated nodes
+  ansible.builtin.service:
+    name: apache2
+    state: reloaded
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['webservers'] | difference([certbot_primary_host]) }}"
+  when:
+    - certbot_primary_host is defined
+    - inventory_hostname == certbot_primary_host
+    - groups['webservers'] | length > 1

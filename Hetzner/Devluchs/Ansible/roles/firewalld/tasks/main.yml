@@ -1,0 +1,43 @@
+---
+- name: Install firewalld
+  ansible.builtin.apt:
+    name: firewalld
+    state: present
+    update_cache: true
+
+- name: Ensure firewalld is enabled and running
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Allow required services
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop:
+    - ssh
+    - http
+    - https
+
+- name: Allow required ports
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop:
+    - 53/tcp
+    - 53/udp
+    - 9090/tcp
+
+- name: Attach internal interface to public zone
+  ansible.posix.firewalld:
+    interface: "{{ internal_interface }}"
+    zone: public
+    permanent: true
+    immediate: true
+    state: enabled
+  when: internal_interface is defined

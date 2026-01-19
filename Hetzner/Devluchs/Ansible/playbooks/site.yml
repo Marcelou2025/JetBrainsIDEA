@@ -1,0 +1,27 @@
+---
+- name: Network setup
+  hosts: nameservers
+  become: true
+  roles:
+    - network
+
+- name: Base server setup
+  hosts: hetzner
+  become: true
+  roles:
+    - requirements
+    - firewalld
+    - cockpit
+
+- name: Web server setup
+  hosts: webservers
+  become: true
+  roles:
+    - apache
+    - certbot
+
+- name: DNS server setup
+  hosts: nameservers
+  become: true
+  roles:
+    - bind9

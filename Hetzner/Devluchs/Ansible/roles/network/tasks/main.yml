@@ -1,0 +1,26 @@
+---
+- name: Install netplan
+  ansible.builtin.apt:
+    name: netplan.io
+    state: present
+    update_cache: true
+
+- name: Configure netplan
+  ansible.builtin.template:
+    src: netplan.yaml.j2
+    dest: /etc/netplan/01-ansible.yaml
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Apply netplan
+
+- name: Ensure internal route is present
+  ansible.builtin.command: >
+    ip route replace {{ internal_ipv4_network }}
+    via {{ internal_ipv4_gateway }}
+    dev {{ internal_interface }}
+    onlink
+  when:
+    - internal_interface is defined
+    - internal_ipv4_network is defined
+    - internal_ipv4_gateway is defined

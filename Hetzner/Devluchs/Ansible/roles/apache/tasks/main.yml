@@ -1,0 +1,67 @@
+---
+- name: Install Apache
+  ansible.builtin.apt:
+    name: apache2
+    state: present
+    update_cache: true
+
+- name: Enable rewrite and ssl modules
+  ansible.builtin.command: a2enmod rewrite ssl
+  args:
+    creates: /etc/apache2/mods-enabled/ssl.load
+  notify: Reload apache2
+
+- name: Ensure Apache is enabled and running
+  ansible.builtin.service:
+    name: apache2
+    state: started
+    enabled: true
+
+- name: Configure default vhost for devluchs.de
+  ansible.builtin.template:
+    src: 000-default.conf.j2
+    dest: /etc/apache2/sites-available/000-default.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload apache2
+
+- name: Configure SSL vhost
+  ansible.builtin.template:
+    src: 000-default-ssl.conf.j2
+    dest: /etc/apache2/sites-available/000-default-ssl.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload apache2
+
+- name: Check SSL certificate presence
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ certbot_domains | default([]) | first | default(inventory_hostname) }}/fullchain.pem"
+  register: ssl_cert_stat
+
+- name: Enable default site
+  ansible.builtin.command: a2ensite 000-default.conf
+  args:
+    creates: /etc/apache2/sites-enabled/000-default.conf
+  notify: Reload apache2
+
+- name: Enable SSL site
+  ansible.builtin.command: a2ensite 000-default-ssl.conf
+  args:
+    creates: /etc/apache2/sites-enabled/000-default-ssl.conf
+  notify: Reload apache2
+  when: ssl_cert_stat.stat.exists
+
+- name: Disable SSL site if cert missing
+  ansible.builtin.command: a2dissite 000-default-ssl.conf
+  when: not ssl_cert_stat.stat.exists
+  notify: Reload apache2
+
+- name: Deploy default index page
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    owner: root
+    group: root
+    mode: "0644"

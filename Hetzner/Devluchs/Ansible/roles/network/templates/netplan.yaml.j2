@@ -1,0 +1,32 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    {{ netplan_interface }}:
+      dhcp4: {{ ipv4_dhcp | default(true) }}
+      dhcp6: false
+      dhcp4-overrides:
+        use-dns: false
+      addresses:
+        - {{ ipv6_address }}/{{ ipv6_prefix }}
+      routes:
+        - to: default
+          via: {{ ipv6_gateway }}
+      nameservers:
+        addresses:
+          - 208.67.222.222
+          - 208.67.220.220
+          - 2620:119:35::35
+          - 2620:119:35::53
+{% if internal_interface is defined %}
+    {{ internal_interface }}:
+      dhcp4: false
+      addresses:
+        - {{ internal_ipv4_address }}/{{ internal_ipv4_prefix }}
+{% if internal_ipv4_network is defined and internal_ipv4_gateway is defined %}
+      routes:
+        - to: {{ internal_ipv4_network }}
+          via: {{ internal_ipv4_gateway }}
+          on-link: true
+{% endif %}
+{% endif %}
